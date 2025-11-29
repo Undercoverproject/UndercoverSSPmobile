@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Undercover SSP - Mobile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <style>
+    :root{
+      --accent:#2bb673;
+      --accent-dark:#1e8f56;
+      --bg-dark:#02140a;
+      --text:#f6f9fb;
+      --card-bg: rgba(255,255,255,0.05);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color:var(--text);
+      background: var(--bg-dark);
+      min-height:100vh;
+      overflow-x: hidden; /* Empêche scroll horizontal mobile */
+    }
+    
+    /* Fond animé léger */
+    #vanta-bg { position:fixed; inset:0; z-index:0; }
+    
+    .overlay { 
+      position:relative; z-index:2; min-height:100vh;
+      background: linear-gradient(180deg, rgba(0,10,6,0.6), rgba(0,0,0,0.8));
+      padding:15px; 
+      display:flex; flex-direction:column; align-items:center; 
+    }
+    
+    .container { width:100%; max-width:600px; padding-bottom: 40px; } /* Max-width mobile */
+    
+    header{ 
+      display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:20px; 
+      text-align:center;
+    }
+    h1{ margin:0; font-size:24px; color: #4ade80; }
+    p.lead{ margin:0; opacity:0.8; font-size:14px; }
+    
+    /* Navigation Mobile : Boutons plus gros */
+    nav{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; width:100%; }
+    .btn{ 
+      background:linear-gradient(180deg,var(--accent),var(--accent-dark)); 
+      color:white; padding:14px 20px; border-radius:12px; border:none; 
+      cursor:pointer; font-size:16px; font-weight:600;
+      touch-action: manipulation; /* Optimisation tactile */
+      transition: transform 0.1s;
+      flex: 1; min-width: 120px; /* Taille min pour les pouces */
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn.ghost{ background: rgba(255,255,255,0.1); color:var(--text); border:1px solid rgba(255,255,255,0.1); }
+    .btn.danger{ background: #e74c3c; }
+    .btn.full{ width:100%; margin-top:10px; }
+
+    /* Cards */
+    .card{ 
+      background: var(--card-bg); 
+      border-radius:16px; padding:20px; margin-bottom:15px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4); 
+      border:1px solid rgba(255,255,255,0.05); 
+      backdrop-filter: blur(10px);
+    }
+    
+    .screen{ display:none; }
+    .screen.active{ display:block; animation:fadeIn .3s ease; }
+    @keyframes fadeIn{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
+    
+    /* Form Elements Mobile */
+    label { font-weight: 700; display:block; margin-bottom: 8px; font-size:14px; color:#8fe7a8; }
+    select, input[type="text"], input[type="number"] { 
+      width:100%; padding:14px; border-radius:12px; 
+      border:1px solid rgba(255,255,255,0.2); font-size:16px; 
+      background: rgba(0,0,0,0.3); color:white; margin-bottom: 15px; 
+      appearance: none; /* Retire style natif iOS */
+    }
+    
+    /* Dictionnaire Styles */
+    .dict-category { 
+        margin-top: 25px; border-bottom: 2px solid var(--accent); 
+        padding-bottom: 5px; color: var(--accent); 
+        font-size: 1.1em; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .dict-theme { margin-top: 15px; color: #fff; font-weight: bold; font-size: 1.05em; margin-bottom:5px;}
+    .dict-item { 
+        background: rgba(255,255,255,0.07); 
+        margin-bottom: 10px; padding: 12px; border-radius: 10px; 
+        border-left: 3px solid rgba(255,255,255,0.3);
+    }
+    .dict-pair { font-weight: 700; color: #4ade80; margin-bottom: 6px; font-size:1.1em; }
+    .dict-def { font-size: 0.95em; opacity: 0.9; line-height: 1.4; color: #ddd; }
+
+    /* Game Elements */
+    #wordDisplay{ font-size:32px; font-weight:800; padding:20px; border-radius:12px; display:inline-block; margin-top:10px; background: rgba(255,255,255,0.1); color: #4ade80; width:100%; text-align:center; }
+    .vote-item{ background: rgba(255,255,255,0.05); padding:15px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; font-size:18px; margin-bottom: 8px; cursor: pointer; border:1px solid transparent;}
+    .vote-item.selected { border-color: var(--accent); background: rgba(43,182,115,0.2); }
+    
+    .timer{ font-size:48px; font-weight:800; display:block; text-align:center; margin:15px 0; letter-spacing:2px; font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+    
+    /* Checkbox list for roles */
+    .role-check { display:flex; align-items:center; gap:12px; padding:12px; background:rgba(255,255,255,0.05); margin-bottom:8px; border-radius:8px; }
+    .role-check input { width:20px; height:20px; margin:0; }
+  </style>
+</head>
+<body>
+  <div id="vanta-bg"></div>
+
+  <div class="overlay">
+    <div class="container">
+      <header>
+        <h1>🌱 Undercover SSP</h1>
+        <p class="lead">Apprentissage Sites & Sols Pollués</p>
+      </header>
+
+      <main>
+        <section id="menu" class="screen active">
+          <div class="card">
+            <h2 style="text-align:center; margin-top:0;">Menu Principal</h2>
+            <nav style="flex-direction:column;">
+              <button class="btn full" onclick="show('configScreen')">🎮 Nouvelle Partie</button>
+              <button class="btn full ghost" onclick="show('dictionaryScreen')">📚 Dictionnaire (Tout voir)</button>
+              <button class="btn full ghost" onclick="show('explainScreen')">❓ Règles du jeu</button>
+            </nav>
+          </div>
+        </section>
+
+        <section id="dictionaryScreen" class="screen">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 style="margin:0;">📚 Dictionnaire</h2>
+                    <button class="btn ghost" style="padding:8px 12px; min-width:auto;" onclick="show('menu')">✕</button>
+                </div>
+                <p style="opacity:0.7; font-size:14px;">Tous les concepts techniques du jeu expliqués.</p>
+                
+                <div id="dictionaryContent" style="max-height: 70vh; overflow-y: auto; padding-right: 5px;">
+                    </div>
+                <button class="btn full" style="margin-top:15px;" onclick="show('menu')">Retour Menu</button>
+            </div>
+        </section>
+
+        <section id="configScreen" class="screen">
+          <div class="card">
+            <h2>⚙️ Configuration</h2>
+            
+            <label>1. Difficulté</label>
+            <select id="difficultySelect" onchange="updateThemes()">
+              <option value="facile">🟢 Facile (Concepts)</option>
+              <option value="moyen">🟡 Moyen (Technique)</option>
+              <option value="difficile">🔴 Difficile (Expert)</option>
+            </select>
+
+            <label>2. Sous-thème</label>
+            <select id="themeSelect"></select>
+
+            <label>3. Nombre de joueurs</label>
+            <input id="playerCount" type="number" min="3" max="20" value="5" onchange="buildNameInputs()" />
+
+            <div id="namesList" style="max-height:200px; overflow-y:auto; margin-bottom:15px;"></div>
+            
+            <div style="text-align:center;">
+                <button class="btn ghost" onclick="document.getElementById('rolesOptions').style.display='block'; this.style.display='none'">+ Options Rôles</button>
+            </div>
+
+            <div id="rolesOptions" style="display:none; margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+                <label>Rôles Spéciaux (Civils uniquement)</label>
+                <div id="rolesSelect"></div>
+            </div>
+
+            <button class="btn full" style="margin-top:20px;" onclick="assignRolesAndWords()">▶️ Lancer la partie</button>
+            <button class="btn full ghost" onclick="show('menu')">Retour</button>
+          </div>
+        </section>
+
+        <section id="revealScreen" class="screen">
+          <div class="card" style="text-align:center;">
+            <h2>Distribution 🔒</h2>
+            <p style="font-size:14px; opacity:0.8;">Passez le téléphone au joueur indiqué.</p>
+            
+            <div style="background:rgba(255,255,255,0.1); padding:20px; border-radius:12px; margin:20px 0;">
+                <h3 id="revealName" style="margin:0; font-size:24px; color:var(--accent);">Joueur X</h3>
+            </div>
+
+            <button class="btn full" id="seeBtn" onclick="seeMyWord()">👁️ Voir mon mot</button>
+
+            <div id="wordInfo" style="display:none;">
+              <div id="wordDisplay">MOT</div>
+              <div id="roleLabel" style="margin-top:15px; font-weight:bold; color:#f1c40f;"></div>
+              
+              <div style="margin-top:30px; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;">
+                  <small>Mémorise ton mot et clique ci-dessous pour cacher.</small>
+              </div>
+              
+              <button class="btn full ghost" onclick="nextReveal()">Cacher & Suivant ➡️</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="discussionScreen" class="screen">
+          <div class="card">
+            <div id="publicRoleBanner" style="background:#e67e22; padding:10px; border-radius:8px; margin-bottom:15px; text-align:center; font-weight:bold; display:none;"></div>
+
+            <h2 style="text-align:center;">🗣️ Débat</h2>
+            <div class="timer" id="timerDisplay">01:30</div>
+            
+            <div style="display:flex; gap:10px;">
+                <button class="btn" onclick="startDiscussion()">Start</button>
+                <button class="btn ghost" onclick="if(confirm('Passer au vote ?')) openVoting()">Vote</button>
+            </div>
+
+            <div id="votingArea" style="margin-top:25px; display:none; border-top:1px solid rgba(255,255,255,0.1); padding-top:20px;">
+              <h3>🗳️ Vote</h3>
+              <p style="font-size:14px;">Touchez le nom pour sélectionner.</p>
+              <div id="voteList"></div>
+              <button class="btn full danger" onclick="collectVotes()">Confirmer Élimination 💀</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="afterScreen" class="screen">
+          <div class="card" style="text-align:center;">
+            <h2>Résultat</h2>
+            <div id="afterContent" style="font-size:18px; margin:20px 0; line-height:1.5;"></div>
+            <button class="btn full" onclick="proceedAfterVote()">Tour Suivant</button>
+            <button class="btn full ghost" onclick="forceFinalReveal()">Arrêter Partie</button>
+          </div>
+        </section>
+
+        <section id="endScreen" class="screen">
+          <div class="card" style="text-align:center;">
+            <h2>🏁 Fin de Partie</h2>
+            <div id="endMessage" style="font-size:20px; font-weight:bold; color:var(--accent); margin-bottom:20px;"></div>
+
+            <div style="text-align:left; background:rgba(255,255,255,0.05); padding:15px; border-radius:10px;">
+                <p style="margin:5px 0;">📜 <strong>L'Explication Technique :</strong></p>
+                <div id="endContext" style="font-style:italic; color:#ddd; margin-top:5px;"></div>
+            </div>
+
+            <div style="margin-top:20px; text-align:left;">
+                <h4>Les Rôles étaient :</h4>
+                <ul id="playersSummary" style="list-style:none; padding:0;"></ul>
+            </div>
+
+            <button class="btn full" onclick="location.reload()">Rejouer</button>
+            <button class="btn full ghost" onclick="show('menu')">Menu</button>
+          </div>
+        </section>
+
+        <section id="explainScreen" class="screen">
+            <div class="card">
+                <h2>Règles Rapides</h2>
+                <ul>
+                    <li><strong>Civils :</strong> Mot identique. Doivent tuer l'intrus.</li>
+                    <li><strong>Pollueur :</strong> Mot légèrement différent. Doit survivre.</li>
+                    <li><strong>Mister White :</strong> Aucun mot. Doit deviner le mot des civils.</li>
+                </ul>
+                <button class="btn full" onclick="show('menu')">Retour</button>
+            </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.fog.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+
+  <script>
+    /* INIT VANTA (Background) */
+    window.onload = function() {
+        try {
+            VANTA.FOG({
+                el: "#vanta-bg",
+                mouseControls: true, touchControls: true, gyroControls: false,
+                minHeight: 200.00, minWidth: 200.00,
+                highlightColor: 0x8fe7a8, midtoneColor: 0x2bb673, lowlightColor: 0x08351a, baseColor: 0x02140a,
+                blurFactor: 0.6, speed: 0.8
+            });
+        } catch(e){}
+        
+        updateThemes();
+        buildNameInputs();
+        renderDictionary();
+        populateRoles();
+    };
+
+    /* DONNEES */
+    const GAME_DATA = {
+      facile: {
+        "Concepts de pollution": [
+          [["Dépollution", "Décontamination"], "La dépollution élimine/réduit la pollution. La décontamination retire des agents dangereux (plus spécifique)."],
+          [["Pollution", "Contamination"], "La pollution est une dégradation globale. La contamination est une présence locale indésirable."],
+          [["Risque", "Danger"], "Le danger est intrinseque. Le risque est la probabilité que le danger cause un dommage (dépend de l'exposition)."]
+        ],
+        "Études & analyses": [
+          [["Étude", "Rapport"], "L'étude est l'action d'analyser. Le rapport est le document papier qui en résulte."],
+          [["Prélèvement", "Échantillon"], "Le prélèvement est l'action de prendre. L'échantillon est la matière collectée."],
+          [["Sable", "Charbon actif"], "Le sable filtre mécaniquement (particules). Le charbon absorbe chimiquement (polluants dissous)."],
+          [["Bassin", "Réservoir"], "Un bassin est généralement ouvert (air libre). Un réservoir est souvent fermé."]
+        ],
+        "Hydrogéologie simple": [
+          [["Piézomètre", "Forage"], "Le forage est le trou. Le piézomètre est l'équipement de mesure installé DANS le forage."],
+          [["Sable", "Gravier"], "Différence de taille (granulométrie). Le gravier est plus gros et laisse l'eau passer plus vite."],
+          [["Eau potable", "Eau brute"], "L'eau brute est naturelle. L'eau potable a été traitée."],
+          [["Source", "Fontaine"], "La source est naturelle. La fontaine est un aménagement humain."],
+          [["Boues", "Sédiments"], "Sédiments = naturel (fond rivière). Boues = issu d'un traitement ou station d'épuration."],
+          [["Aquifère", "Aquitard"], "Aquifère contient et fait circuler l'eau. Aquitard contient mais freine l'eau (peu perméable)."],
+          [["Aquiclude", "Aquifère"], "Aquiclude bloque l'eau (imperméable). Aquifère la laisse passer."]
+        ]
+      },
+      moyen: {
+        "Hydraulique & circulation": [
+          [["Pompage", "Drainage"], "Pompage = actif (moteur). Drainage = passif (gravité/tuyaux)."],
+          [["Évaporation", "Volatilisation"], "Évaporation = Eau -> Vapeur. Volatilisation = Polluant -> Gaz."],
+          [["Nappe libre", "Nappe captive"], "Libre = surface à pression atmosphérique. Captive = sous pression sous un toit imperméable."],
+          [["Équipotentielle", "Ligne de courant"], "Équipotentielle = même charge. Ligne de courant = direction de l'eau. Elles sont perpendiculaires."],
+          [["Limite perméable", "Limite imperméable"], "Perméable = l'eau rentre/sort (rivière). Imperméable = l'eau bute (mur argile)."],
+          [["Dispersion", "Diffusion"], "Diffusion = chimique (lent). Dispersion = mécanique due aux chemins dans le sol (rapide)."]
+        ],
+        "Polluants & risques": [
+          [["Hydrocarbure", "Benzène"], "Benzène est un TYPE d'hydrocarbure (aromatique, cancérigène)."],
+          [["Toxique", "Biodisponible"], "Toxique = fait mal. Biodisponible = peut entrer dans l'organisme."],
+          [["Déchet", "Résidu"], "Résidu = reste d'un process. Déchet = ce qu'on jette (statut juridique)."],
+          [["Bactérie", "Micro-organisme"], "Micro-organisme est la catégorie globale (inclut virus, champignons...)."],
+          [["Engrais", "Pesticide"], "Engrais = Nourriture plante. Pesticide = Poison nuisible."]
+        ],
+        "Sols & terrain": [
+          [["Argile", "Barrière"], "L'argile est un matériau. La barrière est une fonction (l'argile PEUT faire barrière)."],
+          [["Sondage", "Carottage"], "Sondage = trou générique. Carottage = on sort un cylindre de terre intact."],
+          [["Filtre", "Tamis"], "Tamis = grille grossière. Filtre = maillage fin."]
+        ],
+        "Chimie": [
+          [["Oxydation", "Réduction"], "Oxydation = perte d'électron. Réduction = gain d'électron."]
+        ]
+      },
+      difficile: {
+        "Hydraulique Expert": [
+          [["Perméabilité", "Transmissivité"], "Perméabilité (K) est une propriété du sol. Transmissivité (T) = K x Épaisseur de la couche."],
+          [["Charge", "Pression"], "Charge = Pression + Altitude (Z). L'eau va de la haute charge vers la basse charge."],
+          [["Pore", "Vide"], "Pore = un trou. Vide = le volume total des trous."],
+          [["Nappe", "Aquifère"], "Aquifère = le contenant (roche). Nappe = le contenu (eau)."]
+        ],
+        "Polluants & Toxicité": [
+          [["Métaux lourds", "Plomb"], "Le plomb est un exemple spécifique de métal lourd."]
+        ],
+        "Techniques Avancées": [
+          [["Absorption", "Adsorption"], "Ab-sorption = dedans (éponge). Ad-sorption = surface (velcro)."],
+          [["Barrière réactive", "Barrière perméable"], "Toute barrière réactive est perméable, mais elle traite l'eau chimiquement au passage."],
+          [["Excavation", "Terrassement"], "Excavation = creuser. Terrassement = bouger la terre pour modeler le terrain."]
+        ],
+        "Réglementaire": [
+          [["Loi", "Arrêté"], "Loi = votée au parlement (cadre). Arrêté = décision administrative (application locale/préfet)."],
+          [["Dirichlet", "Neumann"], "Conditions limites modèle : Dirichlet impose le niveau (H). Neumann impose le débit (Q)."]
+        ],
+        "Transfert": [
+          [["Cible", "Vecteur"], "Vecteur = transporteur (eau/air). Cible = récepteur (homme/nappe)."]
+        ]
+      }
+    };
+
+    const ROLES = ["Traître", "Archiviste", "Lanceur d'alerte", "Juriste", "Maire", "Binôme"];
+
+    /* FONCTIONS UI */
+    function show(id){
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        window.scrollTo(0,0);
+    }
+
+    function renderDictionary(){
+        const div = document.getElementById('dictionaryContent');
+        div.innerHTML = "";
+        for(let diff in GAME_DATA){
+            let dTitle = document.createElement('div');
+            dTitle.className = "dict-category";
+            dTitle.innerText = diff;
+            div.appendChild(dTitle);
+
+            for(let theme in GAME_DATA[diff]){
+                let tTitle = document.createElement('div');
+                tTitle.className = "dict-theme";
+                tTitle.innerText = theme;
+                div.appendChild(tTitle);
+
+                GAME_DATA[diff][theme].forEach(item => {
+                    let el = document.createElement('div');
+                    el.className = "dict-item";
+                    el.innerHTML = `<div class="dict-pair">${item[0][0]} <span style="font-size:0.8em; color:white;">vs</span> ${item[0][1]}</div>
+                                    <div class="dict-def">${item[1]}</div>`;
+                    div.appendChild(el);
+                });
+            }
+        }
+    }
+
+    function updateThemes(){
+        let diff = document.getElementById('difficultySelect').value;
+        let sel = document.getElementById('themeSelect');
+        sel.innerHTML = "";
+        for(let t in GAME_DATA[diff]){
+            let opt = document.createElement('option');
+            opt.value = t; opt.innerText = t;
+            sel.appendChild(opt);
+        }
+    }
+
+    function buildNameInputs(){
+        let n = document.getElementById('playerCount').value;
+        let d = document.getElementById('namesList');
+        d.innerHTML = "";
+        for(let i=0; i<n; i++){
+            let inp = document.createElement('input');
+            inp.placeholder = `Joueur ${i+1}`;
+            inp.id = `pname${i}`;
+            d.appendChild(inp);
+        }
+    }
+
+    function populateRoles(){
+        let d = document.getElementById('rolesSelect');
+        ROLES.forEach(r => {
+            let div = document.createElement('div');
+            div.className = "role-check";
+            div.innerHTML = `<input type="checkbox" value="${r}"> <span>${r}</span>`;
+            d.appendChild(div);
+        });
+    }
+
+    /* LOGIQUE JEU */
+    let players = [];
+    let sessionContext = "";
+    let sessionCiv = "";
+    let sessionUnd = "";
+    let revealIdx = 0;
+    let timerInt = null;
+    let publicQueue = [];
+
+    function assignRolesAndWords(){
+        let count = document.getElementById('playerCount').value;
+        players = [];
+        for(let i=0; i<count; i++){
+            let nm = document.getElementById(`pname${i}`).value.trim() || `J${i+1}`;
+            players.push({name:nm, role:'Analyste', word:null, alive:true});
+        }
+
+        // Choix mot
+        let diff = document.getElementById('difficultySelect').value;
+        let theme = document.getElementById('themeSelect').value;
+        let arr = GAME_DATA[diff][theme];
+        let pick = arr[Math.floor(Math.random()*arr.length)];
+        let words = pick[0];
+        sessionContext = pick[1];
+
+        if(Math.random()>0.5) { sessionCiv=words[0]; sessionUnd=words[1]; }
+        else { sessionCiv=words[1]; sessionUnd=words[0]; }
+
+        // Roles
+        let idxs = players.map((_,i)=>i).sort(()=>Math.random()-0.5);
+        
+        // 1 Pollueur
+        let polIdx = idxs.pop();
+        players[polIdx].role = "Pollueur";
+        players[polIdx].word = sessionUnd;
+
+        // Mister White (si >4 joueurs, 20% chance)
+        if(count > 4 && Math.random() < 0.2){
+             let wIdx = idxs.pop();
+             players[wIdx].role = "Mister White";
+             players[wIdx].word = null;
+        }
+
+        // Roles Speciaux
+        let checkboxes = document.querySelectorAll('#rolesSelect input:checked');
+        checkboxes.forEach(cb => {
+            if(idxs.length > 0){
+                let sIdx = idxs.pop();
+                players[sIdx].role = cb.value;
+            }
+        });
+
+        // Le reste = Analyste
+        idxs.forEach(i => players[i].role = "Analyste");
+
+        // Assigner mot civil
+        players.forEach(p => {
+            if(p.role !== "Pollueur" && p.role !== "Mister White") p.word = sessionCiv;
+        });
+
+        // Queue Publique
+        publicQueue = players.filter(p => !["Analyste", "Pollueur", "Mister White", "Traître"].includes(p.role));
+        
+        revealIdx = 0;
+        updateReveal();
+        show('revealScreen');
+    }
+
+    function updateReveal(){
+        document.getElementById('revealName').innerText = players[revealIdx].name;
+        document.getElementById('seeBtn').style.display = 'block';
+        document.getElementById('wordInfo').style.display = 'none';
+    }
+
+    function seeMyWord(){
+        let p = players[revealIdx];
+        document.getElementById('seeBtn').style.display = 'none';
+        document.getElementById('wordInfo').style.display = 'block';
+        
+        let wDisplay = document.getElementById('wordDisplay');
+        let rDisplay = document.getElementById('roleLabel');
+
+        if(p.role === "Mister White"){
+            wDisplay.innerText = "???";
+            rDisplay.innerText = "Tu es Mister White";
+        } else {
+            wDisplay.innerText = p.word;
+            if(p.role === "Pollueur") rDisplay.innerText = "Tu es l'Infiltré (Pollueur)";
+            else rDisplay.innerText = `Tu es Civil (${p.role})`;
+        }
+    }
+
+    function nextReveal(){
+        revealIdx++;
+        if(revealIdx >= players.length){
+            startDiscussion();
+            show('discussionScreen');
+        } else {
+            updateReveal();
+        }
+    }
+
+    function startDiscussion(){
+        document.getElementById('votingArea').style.display = 'none';
+        
+        // Public Reveal Banner
+        let ban = document.getElementById('publicRoleBanner');
+        if(publicQueue.length > 0){
+            let rev = publicQueue.pop(); // On en révèle un par tour ou tous d'un coup ? Un par tour ici.
+            ban.style.display = 'block';
+            ban.innerText = `📢 INFO : ${rev.name} est ${rev.role}`;
+        } else {
+            ban.style.display = 'none';
+        }
+
+        if(timerInt) clearInterval(timerInt);
+        let t = 90;
+        document.getElementById('timerDisplay').innerText = "01:30";
+        timerInt = setInterval(() => {
+            t--;
+            let m = Math.floor(t/60);
+            let s = t%60;
+            document.getElementById('timerDisplay').innerText = `0${m}:${s<10?'0'+s:s}`;
+            if(t<=0) clearInterval(timerInt);
+        }, 1000);
+    }
+
+    function openVoting(){
+        clearInterval(timerInt);
+        document.getElementById('votingArea').style.display = 'block';
+        let d = document.getElementById('voteList');
+        d.innerHTML = "";
+        players.forEach((p,i) => {
+            if(p.alive){
+                let item = document.createElement('div');
+                item.className = "vote-item";
+                item.innerHTML = `<span>${p.name}</span>`;
+                item.onclick = function(){
+                    document.querySelectorAll('.vote-item').forEach(x=>x.classList.remove('selected'));
+                    item.classList.add('selected');
+                    item.dataset.idx = i;
+                }
+                d.appendChild(item);
+            }
+        });
+    }
+
+    function collectVotes(){
+        let sel = document.querySelector('.vote-item.selected');
+        if(!sel) return alert("Sélectionnez un joueur !");
+        
+        let idx = sel.dataset.idx;
+        let p = players[idx];
+        p.alive = false;
+
+        let msg = `<strong>${p.name}</strong> est éliminé.<br>Il était : <strong>${p.role}</strong><br>Mot : ${p.word||"Aucun"}`;
+        document.getElementById('afterContent').innerHTML = msg;
+
+        // Check Win
+        let alives = players.filter(x=>x.alive);
+        let pol = alives.find(x=>x.role==="Pollueur");
+        let wht = alives.find(x=>x.role==="Mister White");
+
+        if(!pol){ // Pollueur mort
+            finish("VICTOIRE CIVILS", "Le Pollueur a été éliminé !");
+        } else if(alives.length <= 2){ // Reste 2
+            finish("VICTOIRE POLLUEUR", "Il a survécu jusqu'au duel final.");
+        } else {
+            show('afterScreen');
+        }
+    }
+
+    function proceedAfterVote(){
+        startDiscussion();
+        show('discussionScreen');
+    }
+
+    function forceFinalReveal(){
+        finish("PARTIE ARRÊTÉE", "Révélation forcée.");
+    }
+
+    function finish(titre, desc){
+        document.getElementById('endMessage').innerText = `${titre} - ${desc}`;
+        document.getElementById('endContext').innerText = sessionContext;
+        
+        let ul = document.getElementById('playersSummary');
+        ul.innerHTML = "";
+        players.forEach(p => {
+            let li = document.createElement('li');
+            li.innerHTML = `${p.name} : ${p.role} (${p.word||"Ø"})`;
+            ul.appendChild(li);
+        });
+        show('endScreen');
+    }
+  </script>
+</body>
+</html>
