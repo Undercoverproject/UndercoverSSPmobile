@@ -17,67 +17,66 @@
       margin:0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       color:var(--text);
-      background: var(--bg-dark);
+      background: var(--bg-dark); /* Couleur de fond si l'anim charge pas */
       min-height:100vh;
-      overflow-x: hidden; /* Empêche scroll horizontal mobile */
+      overflow-x: hidden;
     }
     
-    /* Fond animé léger */
+    /* Le conteneur pour la fumée */
     #vanta-bg { position:fixed; inset:0; z-index:0; }
     
     .overlay { 
       position:relative; z-index:2; min-height:100vh;
-      background: linear-gradient(180deg, rgba(0,10,6,0.6), rgba(0,0,0,0.8));
+      background: linear-gradient(180deg, rgba(0,10,6,0.3), rgba(0,0,0,0.6)); /* Transparence pour voir la fumée */
       padding:15px; 
       display:flex; flex-direction:column; align-items:center; 
     }
     
-    .container { width:100%; max-width:600px; padding-bottom: 40px; } /* Max-width mobile */
+    .container { width:100%; max-width:600px; padding-bottom: 40px; }
     
     header{ 
-      display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:20px; 
+      display:flex; flex-direction:column; align-items:center; gap:5px; margin-bottom:20px; 
       text-align:center;
     }
-    h1{ margin:0; font-size:24px; color: #4ade80; }
-    p.lead{ margin:0; opacity:0.8; font-size:14px; }
+    h1{ margin:0; font-size:26px; color: #4ade80; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+    p.lead{ margin:0; opacity:0.9; font-size:14px; }
     
-    /* Navigation Mobile : Boutons plus gros */
-    nav{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; width:100%; }
+    /* Navigation Mobile */
     .btn{ 
       background:linear-gradient(180deg,var(--accent),var(--accent-dark)); 
       color:white; padding:14px 20px; border-radius:12px; border:none; 
       cursor:pointer; font-size:16px; font-weight:600;
-      touch-action: manipulation; /* Optimisation tactile */
+      touch-action: manipulation;
       transition: transform 0.1s;
-      flex: 1; min-width: 120px; /* Taille min pour les pouces */
-      text-align: center;
+      width:100%; margin-bottom:10px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
     .btn:active { transform: scale(0.96); }
-    .btn.ghost{ background: rgba(255,255,255,0.1); color:var(--text); border:1px solid rgba(255,255,255,0.1); }
+    .btn.ghost{ background: rgba(255,255,255,0.1); color:var(--text); border:1px solid rgba(255,255,255,0.1); backdrop-filter: blur(4px); }
     .btn.danger{ background: #e74c3c; }
-    .btn.full{ width:100%; margin-top:10px; }
 
-    /* Cards */
+    /* Cards (Translucides pour voir la fumée) */
     .card{ 
-      background: var(--card-bg); 
+      background: rgba(20, 30, 25, 0.65); 
       border-radius:16px; padding:20px; margin-bottom:15px; 
       box-shadow: 0 4px 20px rgba(0,0,0,0.4); 
-      border:1px solid rgba(255,255,255,0.05); 
-      backdrop-filter: blur(10px);
+      border:1px solid rgba(255,255,255,0.08); 
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
     
     .screen{ display:none; }
     .screen.active{ display:block; animation:fadeIn .3s ease; }
     @keyframes fadeIn{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
     
-    /* Form Elements Mobile */
+    /* Inputs Mobile */
     label { font-weight: 700; display:block; margin-bottom: 8px; font-size:14px; color:#8fe7a8; }
     select, input[type="text"], input[type="number"] { 
       width:100%; padding:14px; border-radius:12px; 
       border:1px solid rgba(255,255,255,0.2); font-size:16px; 
-      background: rgba(0,0,0,0.3); color:white; margin-bottom: 15px; 
-      appearance: none; /* Retire style natif iOS */
+      background: rgba(0,0,0,0.4); color:white; margin-bottom: 15px; 
+      appearance: none;
     }
     
     /* Dictionnaire Styles */
@@ -95,14 +94,13 @@
     .dict-pair { font-weight: 700; color: #4ade80; margin-bottom: 6px; font-size:1.1em; }
     .dict-def { font-size: 0.95em; opacity: 0.9; line-height: 1.4; color: #ddd; }
 
-    /* Game Elements */
-    #wordDisplay{ font-size:32px; font-weight:800; padding:20px; border-radius:12px; display:inline-block; margin-top:10px; background: rgba(255,255,255,0.1); color: #4ade80; width:100%; text-align:center; }
+    /* Jeu */
+    #wordDisplay{ font-size:32px; font-weight:800; padding:20px; border-radius:12px; display:inline-block; margin-top:10px; background: rgba(255,255,255,0.1); color: #4ade80; width:100%; text-align:center; border: 1px solid rgba(74, 222, 128, 0.3); }
     .vote-item{ background: rgba(255,255,255,0.05); padding:15px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; font-size:18px; margin-bottom: 8px; cursor: pointer; border:1px solid transparent;}
     .vote-item.selected { border-color: var(--accent); background: rgba(43,182,115,0.2); }
     
-    .timer{ font-size:48px; font-weight:800; display:block; text-align:center; margin:15px 0; letter-spacing:2px; font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+    .timer{ font-size:48px; font-weight:800; display:block; text-align:center; margin:15px 0; letter-spacing:2px; font-variant-numeric: tabular-nums; }
     
-    /* Checkbox list for roles */
     .role-check { display:flex; align-items:center; gap:12px; padding:12px; background:rgba(255,255,255,0.05); margin-bottom:8px; border-radius:8px; }
     .role-check input { width:20px; height:20px; margin:0; }
   </style>
@@ -120,27 +118,13 @@
       <main>
         <section id="menu" class="screen active">
           <div class="card">
-            <h2 style="text-align:center; margin-top:0;">Menu Principal</h2>
+            <h2 style="text-align:center; margin-top:0;">Menu</h2>
             <nav style="flex-direction:column;">
-              <button class="btn full" onclick="show('configScreen')">🎮 Nouvelle Partie</button>
-              <button class="btn full ghost" onclick="show('dictionaryScreen')">📚 Dictionnaire (Tout voir)</button>
-              <button class="btn full ghost" onclick="show('explainScreen')">❓ Règles du jeu</button>
+              <button class="btn" onclick="show('configScreen')">🎮 Nouvelle Partie</button>
+              <button class="btn ghost" onclick="show('dictionaryScreen')">📚 Dictionnaire</button>
+              <button class="btn ghost" onclick="show('explainScreen')">❓ Règles</button>
             </nav>
           </div>
-        </section>
-
-        <section id="dictionaryScreen" class="screen">
-            <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h2 style="margin:0;">📚 Dictionnaire</h2>
-                    <button class="btn ghost" style="padding:8px 12px; min-width:auto;" onclick="show('menu')">✕</button>
-                </div>
-                <p style="opacity:0.7; font-size:14px;">Tous les concepts techniques du jeu expliqués.</p>
-                
-                <div id="dictionaryContent" style="max-height: 70vh; overflow-y: auto; padding-right: 5px;">
-                    </div>
-                <button class="btn full" style="margin-top:15px;" onclick="show('menu')">Retour Menu</button>
-            </div>
         </section>
 
         <section id="configScreen" class="screen">
@@ -149,53 +133,65 @@
             
             <label>1. Difficulté</label>
             <select id="difficultySelect" onchange="updateThemes()">
-              <option value="facile">🟢 Facile (Concepts)</option>
-              <option value="moyen">🟡 Moyen (Technique)</option>
-              <option value="difficile">🔴 Difficile (Expert)</option>
+              <option value="facile">🟢 Facile</option>
+              <option value="moyen">🟡 Moyen</option>
+              <option value="difficile">🔴 Difficile</option>
             </select>
 
             <label>2. Sous-thème</label>
             <select id="themeSelect"></select>
 
-            <label>3. Nombre de joueurs</label>
+            <label>3. Joueurs</label>
             <input id="playerCount" type="number" min="3" max="20" value="5" onchange="buildNameInputs()" />
 
             <div id="namesList" style="max-height:200px; overflow-y:auto; margin-bottom:15px;"></div>
             
             <div style="text-align:center;">
-                <button class="btn ghost" onclick="document.getElementById('rolesOptions').style.display='block'; this.style.display='none'">+ Options Rôles</button>
+                <button class="btn ghost" style="font-size:14px; padding:10px;" onclick="document.getElementById('rolesOptions').style.display='block'; this.style.display='none'">+ Options Rôles</button>
             </div>
 
             <div id="rolesOptions" style="display:none; margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
-                <label>Rôles Spéciaux (Civils uniquement)</label>
+                <label>Rôles Spéciaux</label>
                 <div id="rolesSelect"></div>
             </div>
 
-            <button class="btn full" style="margin-top:20px;" onclick="assignRolesAndWords()">▶️ Lancer la partie</button>
-            <button class="btn full ghost" onclick="show('menu')">Retour</button>
+            <button class="btn" style="margin-top:20px;" onclick="assignRolesAndWords()">▶️ Lancer</button>
+            <button class="btn ghost" onclick="show('menu')">Retour</button>
           </div>
+        </section>
+
+        <section id="dictionaryScreen" class="screen">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 style="margin:0;">📚 Dictionnaire</h2>
+                    <button class="btn ghost" style="padding:5px 10px; width:auto; margin:0;" onclick="show('menu')">✕</button>
+                </div>
+                
+                <div id="dictionaryContent" style="max-height: 70vh; overflow-y: auto; padding-right: 5px; margin-top:15px;">
+                    </div>
+            </div>
         </section>
 
         <section id="revealScreen" class="screen">
           <div class="card" style="text-align:center;">
-            <h2>Distribution 🔒</h2>
+            <h2>🔒 Distribution</h2>
             <p style="font-size:14px; opacity:0.8;">Passez le téléphone au joueur indiqué.</p>
             
-            <div style="background:rgba(255,255,255,0.1); padding:20px; border-radius:12px; margin:20px 0;">
+            <div style="background:rgba(255,255,255,0.1); padding:15px; border-radius:12px; margin:20px 0;">
                 <h3 id="revealName" style="margin:0; font-size:24px; color:var(--accent);">Joueur X</h3>
             </div>
 
-            <button class="btn full" id="seeBtn" onclick="seeMyWord()">👁️ Voir mon mot</button>
+            <button class="btn" id="seeBtn" onclick="seeMyWord()">👁️ Voir mon mot</button>
 
             <div id="wordInfo" style="display:none;">
               <div id="wordDisplay">MOT</div>
               <div id="roleLabel" style="margin-top:15px; font-weight:bold; color:#f1c40f;"></div>
               
-              <div style="margin-top:30px; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;">
-                  <small>Mémorise ton mot et clique ci-dessous pour cacher.</small>
+              <div style="margin-top:20px; margin-bottom:20px; font-size:14px; opacity:0.8;">
+                  Mémorise ton mot et clique pour cacher.
               </div>
               
-              <button class="btn full ghost" onclick="nextReveal()">Cacher & Suivant ➡️</button>
+              <button class="btn ghost" onclick="nextReveal()">Cacher & Suivant ➡️</button>
             </div>
           </div>
         </section>
@@ -204,7 +200,7 @@
           <div class="card">
             <div id="publicRoleBanner" style="background:#e67e22; padding:10px; border-radius:8px; margin-bottom:15px; text-align:center; font-weight:bold; display:none;"></div>
 
-            <h2 style="text-align:center;">🗣️ Débat</h2>
+            <h2 style="text-align:center; margin-top:0;">🗣️ Débat</h2>
             <div class="timer" id="timerDisplay">01:30</div>
             
             <div style="display:flex; gap:10px;">
@@ -216,7 +212,7 @@
               <h3>🗳️ Vote</h3>
               <p style="font-size:14px;">Touchez le nom pour sélectionner.</p>
               <div id="voteList"></div>
-              <button class="btn full danger" onclick="collectVotes()">Confirmer Élimination 💀</button>
+              <button class="btn danger" onclick="collectVotes()">Confirmer Élimination 💀</button>
             </div>
           </div>
         </section>
@@ -225,8 +221,8 @@
           <div class="card" style="text-align:center;">
             <h2>Résultat</h2>
             <div id="afterContent" style="font-size:18px; margin:20px 0; line-height:1.5;"></div>
-            <button class="btn full" onclick="proceedAfterVote()">Tour Suivant</button>
-            <button class="btn full ghost" onclick="forceFinalReveal()">Arrêter Partie</button>
+            <button class="btn" onclick="proceedAfterVote()">Tour Suivant</button>
+            <button class="btn ghost" onclick="forceFinalReveal()">Arrêter Partie</button>
           </div>
         </section>
 
@@ -245,8 +241,8 @@
                 <ul id="playersSummary" style="list-style:none; padding:0;"></ul>
             </div>
 
-            <button class="btn full" onclick="location.reload()">Rejouer</button>
-            <button class="btn full ghost" onclick="show('menu')">Menu</button>
+            <button class="btn" onclick="location.reload()">Rejouer</button>
+            <button class="btn ghost" onclick="show('menu')">Menu</button>
           </div>
         </section>
 
@@ -258,7 +254,7 @@
                     <li><strong>Pollueur :</strong> Mot légèrement différent. Doit survivre.</li>
                     <li><strong>Mister White :</strong> Aucun mot. Doit deviner le mot des civils.</li>
                 </ul>
-                <button class="btn full" onclick="show('menu')">Retour</button>
+                <button class="btn" onclick="show('menu')">Retour</button>
             </div>
         </section>
 
@@ -270,7 +266,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
 
   <script>
-    /* INIT VANTA (Background) */
+    /* INIT VANTA */
     window.onload = function() {
         try {
             VANTA.FOG({
@@ -364,7 +360,6 @@
 
     const ROLES = ["Traître", "Archiviste", "Lanceur d'alerte", "Juriste", "Maire", "Binôme"];
 
-    /* FONCTIONS UI */
     function show(id){
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -447,7 +442,6 @@
             players.push({name:nm, role:'Analyste', word:null, alive:true});
         }
 
-        // Choix mot
         let diff = document.getElementById('difficultySelect').value;
         let theme = document.getElementById('themeSelect').value;
         let arr = GAME_DATA[diff][theme];
@@ -458,22 +452,18 @@
         if(Math.random()>0.5) { sessionCiv=words[0]; sessionUnd=words[1]; }
         else { sessionCiv=words[1]; sessionUnd=words[0]; }
 
-        // Roles
         let idxs = players.map((_,i)=>i).sort(()=>Math.random()-0.5);
         
-        // 1 Pollueur
         let polIdx = idxs.pop();
         players[polIdx].role = "Pollueur";
         players[polIdx].word = sessionUnd;
 
-        // Mister White (si >4 joueurs, 20% chance)
         if(count > 4 && Math.random() < 0.2){
              let wIdx = idxs.pop();
              players[wIdx].role = "Mister White";
              players[wIdx].word = null;
         }
 
-        // Roles Speciaux
         let checkboxes = document.querySelectorAll('#rolesSelect input:checked');
         checkboxes.forEach(cb => {
             if(idxs.length > 0){
@@ -482,15 +472,12 @@
             }
         });
 
-        // Le reste = Analyste
         idxs.forEach(i => players[i].role = "Analyste");
 
-        // Assigner mot civil
         players.forEach(p => {
             if(p.role !== "Pollueur" && p.role !== "Mister White") p.word = sessionCiv;
         });
 
-        // Queue Publique
         publicQueue = players.filter(p => !["Analyste", "Pollueur", "Mister White", "Traître"].includes(p.role));
         
         revealIdx = 0;
@@ -535,10 +522,9 @@
     function startDiscussion(){
         document.getElementById('votingArea').style.display = 'none';
         
-        // Public Reveal Banner
         let ban = document.getElementById('publicRoleBanner');
         if(publicQueue.length > 0){
-            let rev = publicQueue.pop(); // On en révèle un par tour ou tous d'un coup ? Un par tour ici.
+            let rev = publicQueue.pop(); 
             ban.style.display = 'block';
             ban.innerText = `📢 INFO : ${rev.name} est ${rev.role}`;
         } else {
@@ -588,14 +574,12 @@
         let msg = `<strong>${p.name}</strong> est éliminé.<br>Il était : <strong>${p.role}</strong><br>Mot : ${p.word||"Aucun"}`;
         document.getElementById('afterContent').innerHTML = msg;
 
-        // Check Win
         let alives = players.filter(x=>x.alive);
         let pol = alives.find(x=>x.role==="Pollueur");
-        let wht = alives.find(x=>x.role==="Mister White");
 
-        if(!pol){ // Pollueur mort
+        if(!pol){ 
             finish("VICTOIRE CIVILS", "Le Pollueur a été éliminé !");
-        } else if(alives.length <= 2){ // Reste 2
+        } else if(alives.length <= 2){ 
             finish("VICTOIRE POLLUEUR", "Il a survécu jusqu'au duel final.");
         } else {
             show('afterScreen');
