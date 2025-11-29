@@ -21,10 +21,8 @@
       overflow-x: hidden;
     }
     
-    /* Conteneur de l'animation fumée */
     #vanta-bg { position:fixed; inset:0; z-index:0; }
     
-    /* Contenu par-dessus la fumée */
     .overlay { 
       position:relative; z-index:2; min-height:100vh;
       background: linear-gradient(180deg, rgba(0,10,6,0.3), rgba(0,0,0,0.6));
@@ -41,7 +39,7 @@
     h1{ margin:0; font-size:26px; color: #4ade80; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
     p.lead{ margin:0; opacity:0.9; font-size:14px; }
     
-    /* BOUTONS MOBILE */
+    /* BOUTONS */
     .btn{ 
       background:linear-gradient(180deg,var(--accent),var(--accent-dark)); 
       color:white; padding:16px 20px; border-radius:12px; border:none; 
@@ -56,7 +54,7 @@
     .btn.ghost{ background: rgba(255,255,255,0.1); color:var(--text); border:1px solid rgba(255,255,255,0.1); backdrop-filter: blur(4px); }
     .btn.danger{ background: #e74c3c; }
 
-    /* CARTES TRANSLUCIDES */
+    /* CARTES */
     .card{ 
       background: rgba(20, 30, 25, 0.65); 
       border-radius:16px; padding:20px; margin-bottom:15px; 
@@ -79,20 +77,14 @@
       appearance: none; outline: none;
     }
     
-    /* DICTIONNAIRE */
-    .dict-category { 
-        margin-top: 25px; border-bottom: 2px solid var(--accent); 
-        padding-bottom: 5px; color: var(--accent); 
-        font-size: 1.1em; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;
-    }
-    .dict-theme { margin-top: 15px; color: #fff; font-weight: bold; font-size: 1.05em; margin-bottom:5px;}
-    .dict-item { 
+    /* LISTES */
+    .dict-item, .role-desc-item { 
         background: rgba(255,255,255,0.07); 
         margin-bottom: 10px; padding: 12px; border-radius: 10px; 
         border-left: 3px solid rgba(255,255,255,0.3);
     }
-    .dict-pair { font-weight: 700; color: #4ade80; margin-bottom: 6px; font-size:1.1em; }
-    .dict-def { font-size: 0.95em; opacity: 0.9; line-height: 1.4; color: #ddd; }
+    .dict-pair, .role-name { font-weight: 700; color: #4ade80; margin-bottom: 6px; font-size:1.1em; }
+    .dict-def, .role-text { font-size: 0.95em; opacity: 0.9; line-height: 1.4; color: #ddd; }
 
     /* JEU UI */
     #wordDisplay{ font-size:32px; font-weight:800; padding:20px; border-radius:12px; display:inline-block; margin-top:10px; background: rgba(255,255,255,0.1); color: #4ade80; width:100%; text-align:center; border: 1px solid rgba(74, 222, 128, 0.3); }
@@ -114,7 +106,7 @@
     <div class="container">
       <header>
         <h1>🌱 Undercover SSP</h1>
-        <p class="lead">Apprentissage Sites & Sols Pollués</p>
+        <p class="lead">Sites & Sols Pollués</p>
       </header>
 
       <main>
@@ -122,10 +114,21 @@
           <div class="card">
             <nav style="flex-direction:column;">
               <button class="btn" onclick="show('configScreen')">🎮 Nouvelle Partie</button>
+              <button class="btn ghost" onclick="show('rolesDescScreen')">📘 Rôles</button>
               <button class="btn ghost" onclick="show('dictionaryScreen')">📚 Dictionnaire</button>
               <button class="btn ghost" onclick="show('explainScreen')">❓ Règles</button>
             </nav>
           </div>
+        </section>
+
+        <section id="rolesDescScreen" class="screen">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 style="margin:0;">📘 Les Rôles</h2>
+                    <button class="btn ghost" style="padding:5px 10px; width:auto; margin:0;" onclick="show('menu')">✕</button>
+                </div>
+                <div id="rolesListContent" style="max-height: 70vh; overflow-y: auto; padding-right: 5px; margin-top:15px;"></div>
+            </div>
         </section>
 
         <section id="configScreen" class="screen">
@@ -236,7 +239,7 @@
             </div>
 
             <div style="margin-top:20px; text-align:left;">
-                <h4>Les Rôles étaient :</h4>
+                <h4>Résumé de la partie :</h4>
                 <ul id="playersSummary" style="list-style:none; padding:0;"></ul>
             </div>
 
@@ -253,7 +256,7 @@
                     <li><strong>Pollueur :</strong> Mot légèrement différent. Doit survivre.</li>
                     <li><strong>Mister White :</strong> Aucun mot. Doit deviner le mot des civils.</li>
                 </ul>
-                <button class="btn" onclick="show('menu')">Retour</button>
+                <button class="btn ghost" onclick="show('menu')">Retour</button>
             </div>
         </section>
 
@@ -265,7 +268,6 @@
   <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.fog.min.js"></script>
 
   <script>
-    /* INIT VANTA */
     window.onload = function() {
         try {
             if(window.VANTA) {
@@ -279,11 +281,11 @@
             }
         } catch(e){ console.log("Erreur Vanta", e); }
         
-        // Initialisation du jeu
         updateThemes();
         buildNameInputs();
         renderDictionary();
-        populateRoles();
+        populateRolesCheckboxes();
+        renderRolesDescription();
     };
 
     /* DONNEES */
@@ -360,9 +362,20 @@
       }
     };
 
-    const ROLES = ["Traître", "Archiviste", "Lanceur d'alerte", "Juriste", "Maire", "Binôme"];
+    // DEFINITIONS ROLES
+    const ROLES_INFO = {
+        "Analyste (Civil)": "Le rôle de base. Vous connaissez le mot secret. Votre but : éliminer le Pollueur et Mister White.",
+        "Pollueur Infiltré": "Vous avez un mot légèrement différent. Vous devez faire croire que vous êtes un Civil et survivre.",
+        "Mister White": "Vous n'avez AUCUN mot. Écoutez bien les autres pour deviner le mot civil. Si vous survivez, vous gagnez.",
+        "Traître": "C'est un Civil (mot correct) mais stratégique : il sème la confusion. Il gagne avec les civils.",
+        "Archiviste": "Peut rappeler publiquement ce qui s'est dit aux tours précédents.",
+        "Lanceur d'alerte": "Peut, une seule fois, accuser publiquement un suspect.",
+        "Juriste": "Peut demander l'annulation d'un vote s'il le juge injuste.",
+        "Maire": "Son vote compte double lors de l'élimination.",
+        "Binôme": "Lié à vie à un autre joueur. Si l'un est éliminé, l'autre l'est aussi immédiatement."
+    };
+    const SPECIAL_ROLES = ["Traître", "Archiviste", "Lanceur d'alerte", "Juriste", "Maire", "Binôme"];
 
-    /* FONCTIONS UI */
     function show(id){
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -375,67 +388,52 @@
         for(let diff in GAME_DATA){
             let dTitle = document.createElement('div');
             dTitle.className = "dict-category";
-            dTitle.innerText = diff;
+            dTitle.style.marginTop = "20px"; dTitle.style.color = "var(--accent)"; dTitle.style.fontWeight = "bold";
+            dTitle.innerText = diff.toUpperCase();
             div.appendChild(dTitle);
 
             for(let theme in GAME_DATA[diff]){
-                let tTitle = document.createElement('div');
-                tTitle.className = "dict-theme";
-                tTitle.innerText = theme;
-                div.appendChild(tTitle);
-
                 GAME_DATA[diff][theme].forEach(item => {
-                    let el = document.createElement('div');
-                    el.className = "dict-item";
-                    el.innerHTML = `<div class="dict-pair">${item[0][0]} <span style="font-size:0.8em; color:white;">vs</span> ${item[0][1]}</div>
-                                    <div class="dict-def">${item[1]}</div>`;
+                    let el = document.createElement('div'); el.className = "dict-item";
+                    el.innerHTML = `<div class="dict-pair">${item[0][0]} <span style="font-size:0.8em; color:white;">vs</span> ${item[0][1]}</div><div class="dict-def">${item[1]}</div>`;
                     div.appendChild(el);
                 });
             }
         }
     }
 
+    function renderRolesDescription(){
+        const container = document.getElementById('rolesListContent');
+        container.innerHTML = "";
+        for(let [roleName, desc] of Object.entries(ROLES_INFO)){
+            let div = document.createElement('div'); div.className = "role-desc-item";
+            div.innerHTML = `<div class="role-name">${roleName}</div><div class="role-text">${desc}</div>`;
+            container.appendChild(div);
+        }
+    }
+
     function updateThemes(){
         let diff = document.getElementById('difficultySelect').value;
-        let sel = document.getElementById('themeSelect');
-        sel.innerHTML = "";
-        for(let t in GAME_DATA[diff]){
-            let opt = document.createElement('option');
-            opt.value = t; opt.innerText = t;
-            sel.appendChild(opt);
-        }
+        let sel = document.getElementById('themeSelect'); sel.innerHTML = "";
+        for(let t in GAME_DATA[diff]){ let opt = document.createElement('option'); opt.value = t; opt.innerText = t; sel.appendChild(opt); }
     }
 
     function buildNameInputs(){
         let n = document.getElementById('playerCount').value;
-        let d = document.getElementById('namesList');
-        d.innerHTML = "";
-        for(let i=0; i<n; i++){
-            let inp = document.createElement('input');
-            inp.placeholder = `Joueur ${i+1}`;
-            inp.id = `pname${i}`;
-            d.appendChild(inp);
-        }
+        let d = document.getElementById('namesList'); d.innerHTML = "";
+        for(let i=0; i<n; i++){ let inp = document.createElement('input'); inp.placeholder = `Joueur ${i+1}`; inp.id = `pname${i}`; d.appendChild(inp); }
     }
 
-    function populateRoles(){
+    function populateRolesCheckboxes(){
         let d = document.getElementById('rolesSelect');
-        ROLES.forEach(r => {
-            let div = document.createElement('div');
-            div.className = "role-check";
-            div.innerHTML = `<input type="checkbox" value="${r}"> <span>${r}</span>`;
-            d.appendChild(div);
+        SPECIAL_ROLES.forEach(r => {
+            let div = document.createElement('div'); div.className = "role-check";
+            div.innerHTML = `<input type="checkbox" value="${r}"> <span>${r}</span>`; d.appendChild(div);
         });
     }
 
     /* LOGIQUE JEU */
-    let players = [];
-    let sessionContext = "";
-    let sessionCiv = "";
-    let sessionUnd = "";
-    let revealIdx = 0;
-    let timerInt = null;
-    let publicQueue = [];
+    let players = []; let sessionContext = ""; let sessionCiv = ""; let sessionUnd = ""; let revealIdx = 0; let timerInt = null; let publicQueue = [];
 
     function assignRolesAndWords(){
         let count = document.getElementById('playerCount').value;
@@ -449,117 +447,70 @@
         let theme = document.getElementById('themeSelect').value;
         let arr = GAME_DATA[diff][theme];
         let pick = arr[Math.floor(Math.random()*arr.length)];
-        let words = pick[0];
-        sessionContext = pick[1];
+        let words = pick[0]; sessionContext = pick[1];
 
-        if(Math.random()>0.5) { sessionCiv=words[0]; sessionUnd=words[1]; }
-        else { sessionCiv=words[1]; sessionUnd=words[0]; }
+        if(Math.random()>0.5) { sessionCiv=words[0]; sessionUnd=words[1]; } else { sessionCiv=words[1]; sessionUnd=words[0]; }
 
         let idxs = players.map((_,i)=>i).sort(()=>Math.random()-0.5);
-        
-        let polIdx = idxs.pop();
-        players[polIdx].role = "Pollueur";
-        players[polIdx].word = sessionUnd;
+        let polIdx = idxs.pop(); players[polIdx].role = "Pollueur"; players[polIdx].word = sessionUnd;
 
         if(count > 4 && Math.random() < 0.2){
-             let wIdx = idxs.pop();
-             players[wIdx].role = "Mister White";
-             players[wIdx].word = null;
+             let wIdx = idxs.pop(); players[wIdx].role = "Mister White"; players[wIdx].word = null;
         }
 
         let checkboxes = document.querySelectorAll('#rolesSelect input:checked');
-        checkboxes.forEach(cb => {
-            if(idxs.length > 0){
-                let sIdx = idxs.pop();
-                players[sIdx].role = cb.value;
-            }
-        });
+        checkboxes.forEach(cb => { if(idxs.length > 0){ let sIdx = idxs.pop(); players[sIdx].role = cb.value; } });
 
         idxs.forEach(i => players[i].role = "Analyste");
-
-        players.forEach(p => {
-            if(p.role !== "Pollueur" && p.role !== "Mister White") p.word = sessionCiv;
-        });
+        players.forEach(p => { if(p.role !== "Pollueur" && p.role !== "Mister White") p.word = sessionCiv; });
 
         publicQueue = players.filter(p => !["Analyste", "Pollueur", "Mister White", "Traître"].includes(p.role));
-        
-        revealIdx = 0;
-        updateReveal();
-        show('revealScreen');
+        revealIdx = 0; updateReveal(); show('revealScreen');
     }
 
     function updateReveal(){
         document.getElementById('revealName').innerText = players[revealIdx].name;
-        document.getElementById('seeBtn').style.display = 'block';
-        document.getElementById('wordInfo').style.display = 'none';
+        document.getElementById('seeBtn').style.display = 'block'; document.getElementById('wordInfo').style.display = 'none';
     }
 
     function seeMyWord(){
         let p = players[revealIdx];
-        document.getElementById('seeBtn').style.display = 'none';
-        document.getElementById('wordInfo').style.display = 'block';
-        
-        let wDisplay = document.getElementById('wordDisplay');
-        let rDisplay = document.getElementById('roleLabel');
+        document.getElementById('seeBtn').style.display = 'none'; document.getElementById('wordInfo').style.display = 'block';
+        let wDisplay = document.getElementById('wordDisplay'); let rDisplay = document.getElementById('roleLabel');
 
-        if(p.role === "Mister White"){
-            wDisplay.innerText = "???";
-            rDisplay.innerText = "Tu es Mister White";
-        } else {
-            wDisplay.innerText = p.word;
-            if(p.role === "Pollueur") rDisplay.innerText = "Tu es l'Infiltré (Pollueur)";
-            else rDisplay.innerText = `Tu es Civil (${p.role})`;
-        }
+        if(p.role === "Mister White"){ wDisplay.innerText = "???"; rDisplay.innerText = "Tu es Mister White"; }
+        else { wDisplay.innerText = p.word; if(p.role === "Pollueur") rDisplay.innerText = "Tu es l'Infiltré (Pollueur)"; else rDisplay.innerText = `Tu es Civil (${p.role})`; }
     }
 
     function nextReveal(){
-        revealIdx++;
-        if(revealIdx >= players.length){
-            startDiscussion();
-            show('discussionScreen');
-        } else {
-            updateReveal();
-        }
+        revealIdx++; if(revealIdx >= players.length){ startDiscussion(); show('discussionScreen'); } else { updateReveal(); }
     }
 
     function startDiscussion(){
         document.getElementById('votingArea').style.display = 'none';
-        
         let ban = document.getElementById('publicRoleBanner');
-        if(publicQueue.length > 0){
-            let rev = publicQueue.pop(); 
-            ban.style.display = 'block';
-            ban.innerText = `📢 INFO : ${rev.name} est ${rev.role}`;
-        } else {
-            ban.style.display = 'none';
-        }
+        if(publicQueue.length > 0){ let rev = publicQueue.pop(); ban.style.display = 'block'; ban.innerText = `📢 INFO : ${rev.name} est ${rev.role}`; }
+        else { ban.style.display = 'none'; }
 
         if(timerInt) clearInterval(timerInt);
-        let t = 90;
-        document.getElementById('timerDisplay').innerText = "01:30";
+        let t = 90; document.getElementById('timerDisplay').innerText = "01:30";
         timerInt = setInterval(() => {
-            t--;
-            let m = Math.floor(t/60);
-            let s = t%60;
+            t--; let m = Math.floor(t/60); let s = t%60;
             document.getElementById('timerDisplay').innerText = `0${m}:${s<10?'0'+s:s}`;
             if(t<=0) clearInterval(timerInt);
         }, 1000);
     }
 
     function openVoting(){
-        clearInterval(timerInt);
-        document.getElementById('votingArea').style.display = 'block';
-        let d = document.getElementById('voteList');
-        d.innerHTML = "";
+        clearInterval(timerInt); document.getElementById('votingArea').style.display = 'block';
+        let d = document.getElementById('voteList'); d.innerHTML = "";
         players.forEach((p,i) => {
             if(p.alive){
-                let item = document.createElement('div');
-                item.className = "vote-item";
+                let item = document.createElement('div'); item.className = "vote-item";
                 item.innerHTML = `<span>${p.name}</span>`;
                 item.onclick = function(){
                     document.querySelectorAll('.vote-item').forEach(x=>x.classList.remove('selected'));
-                    item.classList.add('selected');
-                    item.dataset.idx = i;
+                    item.classList.add('selected'); item.dataset.idx = i;
                 }
                 d.appendChild(item);
             }
@@ -570,43 +521,29 @@
         let sel = document.querySelector('.vote-item.selected');
         if(!sel) return alert("Sélectionnez un joueur !");
         
-        let idx = sel.dataset.idx;
-        let p = players[idx];
-        p.alive = false;
+        let idx = sel.dataset.idx; let p = players[idx]; p.alive = false;
 
-        let msg = `<strong>${p.name}</strong> est éliminé.<br>Il était : <strong>${p.role}</strong><br>Mot : ${p.word||"Aucun"}`;
+        // MODIFIE ICI : Mot masqué
+        let msg = `<strong>${p.name}</strong> est éliminé.<br>Il était : <strong>${p.role}</strong>`;
         document.getElementById('afterContent').innerHTML = msg;
 
-        let alives = players.filter(x=>x.alive);
-        let pol = alives.find(x=>x.role==="Pollueur");
+        let alives = players.filter(x=>x.alive); let pol = alives.find(x=>x.role==="Pollueur");
 
-        if(!pol){ 
-            finish("VICTOIRE CIVILS", "Le Pollueur a été éliminé !");
-        } else if(alives.length <= 2){ 
-            finish("VICTOIRE POLLUEUR", "Il a survécu jusqu'au duel final.");
-        } else {
-            show('afterScreen');
-        }
+        if(!pol){ finish("VICTOIRE CIVILS", "Le Pollueur a été éliminé !"); }
+        else if(alives.length <= 2){ finish("VICTOIRE POLLUEUR", "Il a survécu jusqu'au duel final."); }
+        else { show('afterScreen'); }
     }
 
-    function proceedAfterVote(){
-        startDiscussion();
-        show('discussionScreen');
-    }
-
-    function forceFinalReveal(){
-        finish("PARTIE ARRÊTÉE", "Révélation forcée.");
-    }
+    function proceedAfterVote(){ startDiscussion(); show('discussionScreen'); }
+    function forceFinalReveal(){ finish("PARTIE ARRÊTÉE", "Révélation forcée."); }
 
     function finish(titre, desc){
         document.getElementById('endMessage').innerText = `${titre} - ${desc}`;
         document.getElementById('endContext').innerText = sessionContext;
-        
-        let ul = document.getElementById('playersSummary');
-        ul.innerHTML = "";
+        let ul = document.getElementById('playersSummary'); ul.innerHTML = "";
         players.forEach(p => {
             let li = document.createElement('li');
-            li.innerHTML = `${p.name} : ${p.role} (${p.word||"Ø"})`;
+            li.innerHTML = `${p.name} : ${p.role} (${p.word||"Ø"})`; // Le mot n'est révélé qu'à la fin
             ul.appendChild(li);
         });
         show('endScreen');
